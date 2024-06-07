@@ -1,0 +1,40 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Register
+    link(rel="stylesheet", href="/stylesheets/style.css")
+  body
+    h2 Register
+    form(id="register-form")
+      label(for="username") Username:
+      input(type="text", id="username", name="username", required=true)
+      br
+      label(for="password") Password:
+      input(type="password", id="password", name="password", required=true)
+      br
+      label(for="email") Email:
+      input(type="email", id="email", name="email", required=true)
+      br
+      button(type="submit") Register
+    script.
+      document.getElementById('register-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value;
+        const response = await fetch('/users/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password, email }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+          alert('Registration successful');
+        } else {
+          alert('Registration failed: ' + result.message);
+        }
+      });

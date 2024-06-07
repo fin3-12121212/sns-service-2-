@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <h2>Users</h2>
+    <button id="register-button">Register</button>
+    <button id="login-button">Login</button>
+
+    <script>
+        document.getElementById('register-button').addEventListener('click', () => {
+            window.location.href = '/register.html';
+        });
+
+        document.getElementById('login-button').addEventListener('click', () => {
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html>

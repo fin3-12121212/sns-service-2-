@@ -1,8 +1,29 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+form, .button-container {
+  max-width: 300px;
+  margin: auto;
+  padding: 1em;
+  border: 1px solid #ccc;
+  border-radius: 1em;
+}
+
+label {
+  margin-top: 1em;
+}
+
+button {
+  margin-top: 1em;
+  padding: 0.5em;
+  border: none;
+  background: #007BFF;
+  color: white;
+  border-radius: 0.5em;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
 }

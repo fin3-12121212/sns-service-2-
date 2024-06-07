@@ -24,13 +24,18 @@ router.post('/login', async (req, res) => {
     if (!validPassword) return res.status(400).send('Invalid username or password');
 
     const token = jwt.sign({ _id: user._id, username: user.username }, 'your_jwt_secret');
+    res.cookie('token', token, { httpOnly: true });
     res.json({ token });
 });
 
-// 모든 사용자 조회 (예시)
-router.get('/', async (req, res) => {
-    const users = await User.find();
-    res.json(users);
+// 회원 가입 폼
+router.get('/register', (req, res) => {
+    res.render('register');
+});
+
+// 로그인 폼
+router.get('/login', (req, res) => {
+    res.render('login');
 });
 
 module.exports = router;

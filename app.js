@@ -4,10 +4,11 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
+var jwt = require('jsonwebtoken');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users'); // 추가된 라우트
-var postsRouter = require('./routes/posts'); // 추가된 라우트
+var usersRouter = require('./routes/users');
+var postsRouter = require('./routes/posts');
 
 var app = express();
 
@@ -26,9 +27,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(async (req, res, next) => {
+  const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, 'your_jwt_secret');
+      req.user = decoded;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  next();
+});
+
 app.use('/', indexRouter);
-app.use('/users', usersRouter); // 라우트 설정
-app.use('/posts', postsRouter); // 라우트 설정
+app.use('/users', usersRouter);
+app.use('/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
