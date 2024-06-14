@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -70,6 +71,20 @@
             </div>
         </aside>
     </main>
+=======
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <h2>Users</h2>
+    <button id="register-button">Register</button>
+    <button id="login-button">Login</button>
+
+>>>>>>> 93078bd5386eb05ed90f7db5cead65d9f445413a
     <script>
         document.getElementById('register-button').addEventListener('click', () => {
             window.location.href = '/register.html';
@@ -78,6 +93,7 @@
         document.getElementById('login-button').addEventListener('click', () => {
             window.location.href = '/login.html';
         });
+<<<<<<< HEAD
 
         document.getElementById('logout-button').addEventListener('click', async () => {
             const response = await fetch('/logout', {
@@ -185,5 +201,8 @@
         checkLogin();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
+=======
+    </script>
+>>>>>>> 93078bd5386eb05ed90f7db5cead65d9f445413a
 </body>
 </html>
