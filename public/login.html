@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
-<<<<<<< HEAD
     <div class="login-container">
         <h2>Login</h2>
         <form id="login-form">
@@ -18,16 +17,6 @@
             <button type="submit">Login</button>
         </form>
     </div>
-=======
-    <h2>Login</h2>
-    <form id="login-form">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br>
-        <button type="submit">Login</button>
-    </form>
->>>>>>> 93078bd5386eb05ed90f7db5cead65d9f445413a
     <script>
         document.getElementById('login-form').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -44,10 +33,7 @@
             if (response.ok) {
                 alert('Login successful');
                 localStorage.setItem('token', result.token);
-<<<<<<< HEAD
                 window.location.href = '/users.html';
-=======
->>>>>>> 93078bd5386eb05ed90f7db5cead65d9f445413a
             } else {
                 alert('Login failed: ' + result.message);
             }
