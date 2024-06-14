@@ -7,7 +7,7 @@ const User = require('../models/user');
 // 회원가입
 router.post('/register', async (req, res) => {
   try {
-    const { username, password, email } = req.body;
+    const { username, password, name, email } = req.body;
 
     // 이메일 중복 확인
     const existingUser = await User.findOne({ email });
@@ -15,7 +15,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).send({ message: 'Email already exists' });
     }
 
-    const user = new User({ username, password, email });
+    const user = new User({ username, password, name, email });
     await user.save();
     res.status(201).send({ message: 'User registered successfully' });
   } catch (error) {
@@ -47,7 +47,7 @@ router.post('/logout', (req, res) => {
   res.status(200).send({ message: 'Logout successful' });
 });
 
-// 회원 가입 폼
+// 회원가입 폼
 router.get('/register', (req, res) => {
   res.render('register');
 });
