@@ -8,6 +8,13 @@ const User = require('../models/user');
 router.post('/register', async (req, res) => {
   try {
     const { username, password, email } = req.body;
+
+    // 이메일 중복 확인
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).send({ message: 'Email already exists' });
+    }
+
     const user = new User({ username, password, email });
     await user.save();
     res.status(201).send({ message: 'User registered successfully' });
