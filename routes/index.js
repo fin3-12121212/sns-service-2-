@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-var express = require('express');
-var router = express.Router();
-
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.redirect('/users.html');
-=======
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/post');
@@ -18,7 +10,6 @@ router.get('/', async function(req, res, next) {
   } catch (error) {
     next(error);
   }
->>>>>>> 93078bd5386eb05ed90f7db5cead65d9f445413a
 });
 
 module.exports = router;
