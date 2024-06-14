@@ -52,4 +52,15 @@ router.put('/:id', verifyToken, async (req, res) => {
     res.json(post);
 });
 
+// 게시글 검색
+router.get('/search', async (req, res) => {
+    try {
+        const query = req.query.query;
+        const posts = await Post.find({ $text: { $search: query } });
+        res.json(posts);
+    } catch (error) {
+        res.status(400).send({ message: error.message });
+    }
+});
+
 module.exports = router;

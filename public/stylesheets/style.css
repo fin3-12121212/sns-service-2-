@@ -78,6 +78,33 @@ main {
   width: 300px;
 }
 
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.search-container input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+  width: 200px;
+}
+
+.search-container button {
+  padding: 10px;
+  background-color: #007BFF; /* 파란색 버튼 */
+  color: white;
+  border: none;
+  border-radius: 0.5em;
+  cursor: pointer;
+}
+
+.search-container button:hover {
+  background-color: #0056b3;
+}
+
 .board-container {
   flex: 1;
   background-color: #ffffff;

@@ -32,6 +32,10 @@
         </div>
     </aside>
     <main>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="검색어를 입력하세요">
+            <button id="search-button">검색</button>
+        </div>
         <div class="board-container">
             <h2 id="board-title">게시판 선택</h2>
             <div class="posts-container" id="posts-container">
@@ -80,6 +84,27 @@
                 const result = await response.json();
                 alert('로그아웃 실패: ' + result.message);
             }
+        });
+
+        document.getElementById('search-button').addEventListener('click', async () => {
+            const query = document.getElementById('search-input').value;
+            if (!query) return alert('검색어를 입력하세요.');
+
+            const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
+            const posts = await response.json();
+            const postsList = document.getElementById('posts-list');
+            postsList.innerHTML = '';
+
+            posts.forEach(post => {
+                const postItem = document.createElement('li');
+                postItem.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <p>작성자: ${post.author}</p>
+                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
+                `;
+                postsList.appendChild(postItem);
+            });
         });
 
         document.getElementById('comment-form').addEventListener('submit', async (event) => {
