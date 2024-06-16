@@ -6,9 +6,11 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var jwt = require('jsonwebtoken');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var postsRouter = require('./routes/posts');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const postsRouter = require('./routes/posts'); // posts 라우트 추가
+const boardsRouter = require('./routes/boards'); // boards 라우트 추가
+
 
 var app = express();
 
@@ -42,7 +44,8 @@ app.use(async (req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/posts', postsRouter);
+app.use('/posts', postsRouter); // posts 라우트 사용
+app.use('/boards', boardsRouter); // boards 라우트 사용
 
 // 로그아웃 엔드포인트 추가
 app.post('/logout', (req, res) => {
