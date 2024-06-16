@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 수정</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <div class="profile-container">
+        <h2>프로필 수정</h2>
+        <form id="profile-form">
+            <label for="customFields[game1].gameId">게임 1 ID:</label>
+            <input type="text" id="customFields[game1].gameId" name="customFields[game1][gameId]"><br>
+            <label for="customFields[game1].url">게임 1 URL:</label>
+            <input type="url" id="customFields[game1].url" name="customFields[game1][url]"><br>
+            <label for="customFields[game2].gameId">게임 2 ID:</label>
+            <input type="text" id="customFields[game2].gameId" name="customFields[game2][gameId]"><br>
+            <label for="customFields[game2].url">게임 2 URL:</label>
+            <input type="url" id="customFields[game2].url" name="customFields[game2][url]"><br>
+            <button type="submit">프로필 업데이트</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('profile-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const customFields = {
+                game1: {
+                    gameId: document.getElementById('customFields[game1].gameId').value,
+                    url: document.getElementById('customFields[game1].url').value
+                },
+                game2: {
+                    gameId: document.getElementById('customFields[game2].gameId').value,
+                    url: document.getElementById('customFields[game2].url').value
+                }
+            };
+            const response = await fetch('/users/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ customFields }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert('프로필 업데이트 성공');
+                window.location.href = '/users.html';
+            } else {
+                alert('프로필 업데이트 실패: ' + result.message);
+            }
+        });
+    </script>
+</body>
+</html>
