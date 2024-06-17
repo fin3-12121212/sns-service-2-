@@ -44,6 +44,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/posts', postsRouter);
 
+// 로그아웃 엔드포인트 추가
+app.post('/logout', (req, res) => {
+  res.clearCookie('token'); // JWT 토큰 쿠키 제거
+  res.status(200).send({ message: 'Logout successful' });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
