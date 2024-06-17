@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>회원가입</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
+<<<<<<< HEAD
     <div class="login-container">
         <h2>Register</h2>
         <form id="register-form">
@@ -17,6 +18,20 @@
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required><br>
             <button type="submit">Register</button>
+=======
+    <div class="register-container">
+        <h2>회원가입</h2>
+        <form id="register-form">
+            <label for="username">아이디:</label>
+            <input type="text" id="username" name="username" required><br>
+            <label for="password">비밀번호:</label>
+            <input type="password" id="password" name="password" required><br>
+            <label for="name">유저 이름:</label>
+            <input type="text" id="name" name="name" required><br>
+            <label for="email">이메일:</label>
+            <input type="email" id="email" name="email" required><br>
+            <button type="submit">회원가입</button>
+>>>>>>> 25db367fa01b6920ac6a7adf7a280e79d02c5470
         </form>
     </div>
     <script>
@@ -24,20 +39,25 @@
             event.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const response = await fetch('/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password, email }),
+                body: JSON.stringify({ username, password, name, email }),
             });
             const result = await response.json();
             if (response.ok) {
+<<<<<<< HEAD
                 alert('Registration successful');
+=======
+                alert('회원가입 성공');
+>>>>>>> 25db367fa01b6920ac6a7adf7a280e79d02c5470
                 window.location.href = '/login.html';
             } else {
-                alert('Registration failed: ' + result.message);
+                alert('회원가입 실패: ' + result.message);
             }
         });
     </script>

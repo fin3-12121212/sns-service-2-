@@ -23,13 +23,6 @@
     <aside class="sidebar">
         <div class="login-container" id="login-container">
             <h2 id="welcome-message"></h2>
-            <form id="login-form">
-                <label for="username">사용자명:</label>
-                <input type="text" id="username" name="username" required><br>
-                <label for="password">비밀번호:</label>
-                <input type="password" id="password" name="password" required><br>
-                <button type="submit">로그인</button>
-            </form>
         </div>
         <div class="board-list">
             <h2>게시판</h2>
@@ -42,6 +35,10 @@
         </div>
     </aside>
     <main>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="검색어를 입력하세요">
+            <button id="search-button">검색</button>
+        </div>
         <div class="board-container">
             <h2 id="board-title">게시판 선택</h2>
             <div class="posts-container" id="posts-container">
@@ -60,10 +57,6 @@
             </div>
         </div>
         <aside class="sidebar-right">
-            <div class="calendar">
-                <h2>달력</h2>
-                <div id="calendar-container"></div>
-            </div>
             <div class="user-count">
                 <h2>사용자 수</h2>
                 <p id="user-count">0</p>
@@ -94,6 +87,27 @@
                 const result = await response.json();
                 alert('로그아웃 실패: ' + result.message);
             }
+        });
+
+        document.getElementById('search-button').addEventListener('click', async () => {
+            const query = document.getElementById('search-input').value;
+            if (!query) return alert('검색어를 입력하세요.');
+
+            const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
+            const posts = await response.json();
+            const postsList = document.getElementById('posts-list');
+            postsList.innerHTML = '';
+
+            posts.forEach(post => {
+                const postItem = document.createElement('li');
+                postItem.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <p>작성자: ${post.author}</p>
+                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
+                `;
+                postsList.appendChild(postItem);
+            });
         });
 
         document.getElementById('comment-form').addEventListener('submit', async (event) => {
@@ -153,34 +167,19 @@
             document.getElementById('user-count').innerText = count;
         }
 
-        function initializeCalendar() {
-            $('#calendar-container').fullCalendar({
-                locale: 'ko',
-                events: [],
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaWeek,agendaDay'
-                }
-            });
-            const today = new Date();
-            $('#calendar-container').fullCalendar('gotoDate', today);
-        }
-
         function checkLogin() {
             const token = localStorage.getItem('token');
             if (token) {
                 // 토큰이 있는 경우 로그인 상태로 처리
                 const user = jwt_decode(token); // jwt-decode 라이브러리 사용
                 document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
-                document.getElementById('login-form').style.display = 'none';
+            } else {
+                document.getElementById('login-container').style.display = 'none';
             }
         }
 
         // 페이지 로드 시 사용자 수 불러오기
         loadUserCount();
-        // 캘린더 초기화
-        initializeCalendar();
         // 로그인 상태 확인
         checkLogin();
     </script>

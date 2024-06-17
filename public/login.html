@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>로그인</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
     <div class="login-container">
+<<<<<<< HEAD
         <h2>Login</h2>
         <form id="login-form">
             <label for="username">Username:</label>
@@ -15,6 +16,15 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required><br>
             <button type="submit">Login</button>
+=======
+        <h2>로그인</h2>
+        <form id="login-form">
+            <label for="username">사용자명:</label>
+            <input type="text" id="username" name="username" required><br>
+            <label for="password">비밀번호:</label>
+            <input type="password" id="password" name="password" required><br>
+            <button type="submit">로그인</button>
+>>>>>>> 25db367fa01b6920ac6a7adf7a280e79d02c5470
         </form>
     </div>
     <script>
@@ -31,11 +41,11 @@
             });
             const result = await response.json();
             if (response.ok) {
-                alert('Login successful');
+                alert('로그인 성공');
                 localStorage.setItem('token', result.token);
                 window.location.href = '/users.html';
             } else {
-                alert('Login failed: ' + result.message);
+                alert('로그인 실패: ' + result.message);
             }
         });
     </script>
