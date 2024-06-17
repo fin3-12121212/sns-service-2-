@@ -11,7 +11,6 @@ const usersRouter = require('./routes/users');
 const postsRouter = require('./routes/posts'); // posts 라우트 추가
 const boardsRouter = require('./routes/boards'); // boards 라우트 추가
 
-
 var app = express();
 
 // MongoDB 연결 설정
@@ -42,21 +41,13 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/posts', postsRouter); // posts 라우트 사용
 app.use('/boards', boardsRouter); // boards 라우트 사용
 
-// 로그아웃 엔드포인트 추가
-app.post('/logout', (req, res) => {
-  res.clearCookie('token'); // JWT 토큰 쿠키 제거
-  res.status(200).send({ message: 'Logout successful' });
-});
-
-// 로그아웃 엔드포인트 추가
-app.post('/logout', (req, res) => {
-  res.clearCookie('token'); // JWT 토큰 쿠키 제거
-  res.status(200).send({ message: 'Logout successful' });
+// 루트 경로로 요청이 들어오면 /users로 리다이렉트
+app.get('/', (req, res) => {
+  res.redirect('/users.html');
 });
 
 // catch 404 and forward to error handler
