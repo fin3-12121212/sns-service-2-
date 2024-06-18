@@ -3,7 +3,6 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user'); // 사용자 모델 가져오기
-const Post = require('../models/post'); // Post 모델 가져오기
 
 // 회원가입
 router.post('/register', async (req, res) => {
@@ -61,7 +60,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ _id: user._id, username: user.username, name: user.name }, 'your_jwt_secret', { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
     console.log('Login successful, token:', token); // 성공적인 로그인과 토큰 로그
-    res.send({ message: 'Login successful', token, username: user.username });
+    res.send({ message: 'Login successful', token });
   } catch (error) {
     console.error('Login error:', error); // 오류 로그
     res.status(400).send({ message: error.message });
@@ -113,22 +112,7 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
-// 사용자 글 목록 반환
-router.get('/posts', async (req, res) => {
-  try {
-    const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).send({ message: 'Unauthorized' });
-    }
-    const decoded = jwt.verify(token, 'your_jwt_secret');
-    const posts = await Post.find({ user_id: decoded._id });
-    res.status(200).send(posts);
-  } catch (error) {
-    res.status(500).send({ message: error.message });
-  }
-});
-
-
+// 
 router.get('/edit_profile.html', (req, res) => {
   res.render('edit_profile');
 });
