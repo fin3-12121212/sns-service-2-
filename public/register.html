@@ -4,21 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입</title>
-    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/register.css">
 </head>
 <body>
-<<<<<<< HEAD
-    <div class="login-container">
-        <h2>Register</h2>
-        <form id="register-form">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required><br>
-            <button type="submit">Register</button>
-=======
     <div class="register-container">
         <h2>회원가입</h2>
         <form id="register-form">
@@ -31,7 +19,6 @@
             <label for="email">이메일:</label>
             <input type="email" id="email" name="email" required><br>
             <button type="submit">회원가입</button>
->>>>>>> 25db367fa01b6920ac6a7adf7a280e79d02c5470
         </form>
     </div>
     <script>
@@ -50,11 +37,7 @@
             });
             const result = await response.json();
             if (response.ok) {
-<<<<<<< HEAD
-                alert('Registration successful');
-=======
                 alert('회원가입 성공');
->>>>>>> 25db367fa01b6920ac6a7adf7a280e79d02c5470
                 window.location.href = '/login.html';
             } else {
                 alert('회원가입 실패: ' + result.message);
