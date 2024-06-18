@@ -1,74 +1,141 @@
-doctype html
-html(lang="en")
+html(lang="ko")
   head
-    meta(charset="UTF-8")
-    meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Home
+    title SNS Service
     link(rel="stylesheet", href="/stylesheets/style.css")
   body
-    h2 Home
-    if user
-      p Welcome, #{user.username}
-      button(id="logout-button") Logout
-      h3 Write a new post
-      form(id="post-form", onsubmit="return false;")
-        label(for="title") Title:
-        input(type="text", id="title", name="title", required=true)
-        br
-        label(for="content") Content:
-        textarea(id="content", name="content", required=true)
-        br
-        button(type="submit") Post
-    else
-      button(id="register-button") Register
-      button(id="login-button") Login
-    h3 Posts
-    ul
-      each post in posts
-        li
-          h4 #{post.title}
-          p #{post.content}
-          p Written by: #{post.user_id ? post.user_id.username : 'Unknown'}
-          p Posted at: #{new Date(post.created_at).toLocaleString()}
-    script.
-      document.getElementById('register-button')?.addEventListener('click', () => {
-        window.location.href = '/users/register';
-      });
+    <script>
+      async function loadPosts(boardTitle) {
+        const response = await fetch(`/posts/board/${boardTitle}`);
+        const posts = await response.json();
+        const postsList = document.getElementById('posts-list');
+        postsList.innerHTML = '';
+        posts.forEach(post => {
+          const postItem = document.createElement('div');
+          postItem.classList.add('post-item');
+          postItem.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.content}</p>
+            <small>게시판: ${post.board}, 작성자: ${post.user.username}, 작성일: ${new Date(post.createdAt).toLocaleDateString()}</small>
+          `;
+          postsList.appendChild(postItem);
+        });
+      }
 
-      document.getElementById('login-button')?.addEventListener('click', () => {
-        window.location.href = '/users/login';
-      });
+      async function loadUserCount() {
+        const response = await fetch('/users/count');
+        const count = await response.json();
+        document.getElementById('user-count').innerText = count.count;
+      }
 
-      document.getElementById('logout-button').addEventListener('click', () => {
-        localStorage.removeItem('token');
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = '/';
-      });
-
-      document.getElementById('post-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const title = document.getElementById('title').value;
-        const content = document.getElementById('content').value;
-
+      function checkLogin() {
         const token = localStorage.getItem('token');
-        if (!token) {
-          alert('You need to log in to post');
-          return;
+        if (token) {
+          const user = jwt_decode(token); // jwt-decode 라이브러리 사용
+          document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
+          document.getElementById('login-container').style.display = 'none';
+        } else {
+          document.getElementById('logout-container').style.display = 'none';
         }
+      }
+
+      function showPostForm() {
+        document.getElementById('post-form').style.display = 'block';
+      }
+
+      function hidePostForm() {
+        document.getElementById('post-form').style.display = 'none';
+      }
+
+      async function submitPostForm(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
 
         const response = await fetch('/posts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
-          body: JSON.stringify({ title, content }),
+          body: JSON.stringify(data)
         });
 
         if (response.ok) {
-          window.location.reload();
+          alert('게시글이 작성되었습니다.');
+          hidePostForm();
+          loadPosts(data.board);
         } else {
-          const error = await response.text();
-          alert(`Failed to post: ${error}`);
+          const error = await response.json();
+          alert(`오류: ${error.message}`);
         }
-      });
+      }
+
+      loadUserCount();
+      checkLogin();
+    </script>
+
+    <div id="header">
+      <h1>홈</h1>
+      <button onclick="showPostForm()">글 작성하기</button>
+    </div>
+
+    <div id="post-form" style="display: none;">
+      <form onsubmit="submitPostForm(event)">
+        <div class="form-group">
+          <label for="board">게시판</label>
+          <select name="board" required>
+            <option value="게시판1">게시판1</option>
+            <option value="게시판2">게시판2</option>
+            <option value="게시판3">게시판3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="title">제목</label>
+          <input type="text" name="title" required />
+        </div>
+        <div class="form-group">
+          <label for="content">내용</label>
+          <textarea name="content" rows="5" required></textarea>
+        </div>
+        <button type="submit">작성</button>
+        <button type="button" onclick="hidePostForm()">취소</button>
+      </form>
+    </div>
+
+    <div id="posts-list"></div>
+
+    <script src="/javascripts/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
+  </body>
+</html>
+
+extends layout
+
+block content
+  .container
+    h1 홈
+    button(onclick="showPostForm()") 글 작성하기
+    form(action="/posts/search", method="GET")
+      .form-group
+        input.form-control(type="text", name="query", placeholder="검색어를 입력하세요")
+      button.btn.btn-primary(type="submit") 검색
+    #posts-list
+      // 여기에 게시글 리스트가 로드될 것입니다.
+    // 게시글 작성 폼
+    #post-form(style="display: none;")
+      form(onsubmit="submitPostForm(event)")
+        .form-group
+          label(for="board") 게시판
+          select.form-control(name="board" required)
+            option(value="게시판1") 게시판1
+            option(value="게시판2") 게시판2
+            option(value="게시판3") 게시판3
+        .form-group
+          label(for="title") 제목
+          input.form-control(type="text", name="title" required)
+        .form-group
+          label(for="content") 내용
+          textarea.form-control(name="content" rows="5" required)
+        button.btn.btn-primary(type="submit") 작성
+        button.btn.btn-secondary(type="button", onclick="hidePostForm()") 취소

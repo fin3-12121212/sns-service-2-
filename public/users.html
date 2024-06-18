@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>메인 페이지</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <script defer src="/javascripts/main.js"></script>
 </head>
 <body>
-    <header>
+    <header id="header">
         <div class="nav-container">
-            <h1>홈</h1>
-            <div class="user-info">
-                <button id="logout-button" class="logout-button">로그아웃</button>
+            <a href="#" id="home-link">Home</a>
+            <h1 id="board-title">홈</h1>
+            <div class="user-info" id="user-info">
+                <button id="logout-button" class="logout-button" style="display:none;">로그아웃</button>
                 <button id="register-button">회원가입</button>
                 <button id="login-button">로그인</button>
             </div>
@@ -27,9 +27,9 @@
         <div class="board-list">
             <h2>게시판</h2>
             <ul>
-                <li><a href="#" data-board="Board 1">게시판 1</a></li>
-                <li><a href="#" data-board="Board 2">게시판 2</a></li>
-                <li><a href="#" data-board="Board 3">게시판 3</a></li>
+                <li><a href="#" data-board="게시판 1" class="board-link">게시판 1</a></li>
+                <li><a href="#" data-board="게시판 2" class="board-link">게시판 2</a></li>
+                <li><a href="#" data-board="게시판 3" class="board-link">게시판 3</a></li>
                 <!-- 추가적인 게시판을 여기서 추가할 수 있습니다 -->
             </ul>
         </div>
@@ -40,149 +40,41 @@
             <button id="search-button">검색</button>
         </div>
         <div class="board-container">
-            <h2 id="board-title">게시판 선택</h2>
             <div class="posts-container" id="posts-container">
                 <!-- 게시글 리스트 -->
                 <ul class="posts-list" id="posts-list">
                     <!-- 게시글이 선택된 게시판에 따라 동적으로 로딩됩니다 -->
                 </ul>
             </div>
-            <div class="comment-form-container">
+            <div class="comment-form-container" id="comment-form-container" style="display: none;">
                 <h2>댓글 달기</h2>
                 <form id="comment-form">
                     <label for="comment-content">내용:</label>
                     <textarea id="comment-content" name="comment-content" required></textarea><br>
+                    <label for="comment-hashtags">해시태그 (쉼표로 구분):</label>
+                    <input type="text" id="comment-hashtags" name="comment-hashtags"><br>
                     <button type="submit">댓글 작성</button>
                 </form>
             </div>
         </div>
-        <aside class="sidebar-right">
-            <div class="user-count">
-                <h2>사용자 수</h2>
-                <p id="user-count">0</p>
-            </div>
-        </aside>
     </main>
-    <script>
-        document.getElementById('register-button').addEventListener('click', () => {
-            window.location.href = '/register.html';
-        });
-
-        document.getElementById('login-button').addEventListener('click', () => {
-            window.location.href = '/login.html';
-        });
-
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            const response = await fetch('/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('token');
-                window.location.href = '/login.html';
-            } else {
-                const result = await response.json();
-                alert('로그아웃 실패: ' + result.message);
-            }
-        });
-
-        document.getElementById('search-button').addEventListener('click', async () => {
-            const query = document.getElementById('search-input').value;
-            if (!query) return alert('검색어를 입력하세요.');
-
-            const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
-            const posts = await response.json();
-            const postsList = document.getElementById('posts-list');
-            postsList.innerHTML = '';
-
-            posts.forEach(post => {
-                const postItem = document.createElement('li');
-                postItem.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <p>작성자: ${post.author}</p>
-                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-                `;
-                postsList.appendChild(postItem);
-            });
-        });
-
-        document.getElementById('comment-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const content = document.getElementById('comment-content').value;
-            const boardTitle = document.getElementById('board-title').innerText;
-            if (boardTitle === '게시판 선택') {
-                alert('먼저 게시판을 선택하세요.');
-                return;
-            }
-            const response = await fetch('/comments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content, board: boardTitle }),
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert('댓글이 작성되었습니다.');
-                loadPosts(boardTitle);
-            } else {
-                alert('댓글 작성 실패: ' + result.message);
-            }
-        });
-
-        document.querySelectorAll('.board-list a').forEach(link => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                const boardTitle = event.target.getAttribute('data-board');
-                document.getElementById('board-title').innerText = boardTitle;
-                loadPosts(boardTitle);
-            });
-        });
-
-        async function loadPosts(boardTitle) {
-            const response = await fetch(`/posts?board=${boardTitle}`);
-            const posts = await response.json();
-            const postsList = document.getElementById('posts-list');
-            postsList.innerHTML = '';
-
-            posts.forEach(post => {
-                const postItem = document.createElement('li');
-                postItem.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <p>작성자: ${post.author}</p>
-                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-                `;
-                postsList.appendChild(postItem);
-            });
-        }
-
-        async function loadUserCount() {
-            const response = await fetch('/users/count');
-            const count = await response.json();
-            document.getElementById('user-count').innerText = count;
-        }
-
-        function checkLogin() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                // 토큰이 있는 경우 로그인 상태로 처리
-                const user = jwt_decode(token); // jwt-decode 라이브러리 사용
-                document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
-            } else {
-                document.getElementById('login-container').style.display = 'none';
-            }
-        }
-
-        // 페이지 로드 시 사용자 수 불러오기
-        loadUserCount();
-        // 로그인 상태 확인
-        checkLogin();
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
+    <div id="post-form" style="display:none;">
+        <form id="post-form-inner" onsubmit="submitPostForm(event)">
+            <h2>글 작성하기</h2>
+            <label for="board">게시판 선택:</label>
+            <select id="board" name="board">
+                <option value="게시판 1">게시판 1</option>
+                <option value="게시판 2">게시판 2</option>
+                <option value="게시판 3">게시판 3</option>
+            </select>
+            <label for="title">제목:</label>
+            <input type="text" id="title" name="title" required>
+            <label for="content">내용:</label>
+            <textarea id="content" name="content" required></textarea>
+            <button type="submit">작성</button>
+            <button type="button" onclick="hidePostForm()">취소</button>
+        </form>
+    </div>
+    <button onclick="showPostForm()">글 작성하기</button>
 </body>
 </html>

@@ -1,7 +1,9 @@
 doctype html
-html
+html(lang="ko")
   head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    title SNS Service
+    link(rel="stylesheet", href="/stylesheets/style.css")
   body
     block content
+    script(src="/javascripts/main.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js")
