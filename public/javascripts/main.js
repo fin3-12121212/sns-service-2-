@@ -158,13 +158,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (response.ok) {
                 localStorage.removeItem('token');
-                window.location.href = '/login.html';
+                alert('로그아웃 되었습니다.');
+                window.location.href = '/';
             } else {
                 const result = await response.json();
                 alert('로그아웃 실패: ' + result.message);
             }
         } catch (error) {
             console.error('Error logging out:', error);
+            alert('로그아웃 중 오류가 발생했습니다.');
         }
     });
 
