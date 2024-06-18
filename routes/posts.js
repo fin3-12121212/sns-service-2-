@@ -1,99 +1,120 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth');
-const Post = require('../models/post');
-const Board = require('../models/board');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const User = require('../models/user'); // 사용자 모델 가져오기
 
-// 글 목록 조회
-router.get('/', async (req, res) => {
-    try {
-        const posts = await Post.find().populate('user_id', 'username email').sort({ created_at: -1 });
-        res.json(posts);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
+// 회원가입
+router.post('/register', async (req, res) => {
+  try {
+    const { name, username, password, email } = req.body;
+    console.log('Registering user:', { name, username, email }); // 입력된 사용자 정보 로그
+
+    // 이메일 중복 확인
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log('Email already exists:', email); // 이메일 중복 로그
+      return res.status(400).send({ message: 'Email already exists' });
     }
+
+    // 사용자 ID 중복 확인
+    const existingName = await User.findOne({ name });
+    if (existingName) {
+      console.log('ID already exists:', name); // ID 중복 로그
+      return res.status(400).send({ message: 'ID already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해시화
+    console.log('Hashed Password:', hashedPassword); // 해시화된 비밀번호 로그
+    const user = new User({ name, username, password: hashedPassword, email, customFields: {} });
+    await user.save();
+    console.log('User registered successfully:', user); // 등록된 사용자 로그
+    res.status(201).send({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Registration error:', error); // 오류 로그
+    res.status(400).send({ message: error.message });
+  }
 });
 
-// 특정 글 조회
-router.get('/:id', async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id).populate('user_id', 'username email');
-        if (!post) return res.status(404).send('Post not found');
-        res.json(post);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
+// 로그인
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    console.log('Logging in user:', username); // 입력된 사용자명 로그
+    
+    const user = await User.findOne({ username });
+    if (!user) {
+      console.log('Invalid username:', username); // 유효하지 않은 사용자명 로그
+      return res.status(400).send({ message: 'Invalid username or password' });
     }
+
+    console.log('Stored hashed password:', user.password); // 저장된 해시화된 비밀번호 로그
+    console.log('Entered password:', password); // 입력된 비밀번호 로그
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match:', isMatch); // 비밀번호 일치 여부 로그
+    if (!isMatch) {
+      console.log('Invalid password for user:', username); // 유효하지 않은 비밀번호 로그
+      return res.status(400).send({ message: 'Invalid username or password' });
+    }
+
+    const token = jwt.sign({ _id: user._id, username: user.username, name: user.name }, 'your_jwt_secret', { expiresIn: '1h' });
+    res.cookie('token', token, { httpOnly: true });
+    console.log('Login successful, token:', token); // 성공적인 로그인과 토큰 로그
+    res.send({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Login error:', error); // 오류 로그
+    res.status(400).send({ message: error.message });
+  }
 });
 
-// 글 작성
-router.post('/', verifyToken, async (req, res) => {
-    try {
-        const { board, title, content } = req.body;
-        const user_id = req.user._id;
-
-        // 게시판 존재 여부 확인
-        const existingBoard = await Board.findOne({ name: board });
-        if (!existingBoard) {
-            return res.status(400).send({ message: 'Board does not exist' });
-        }
-
-        const post = new Post({ user_id, board, title, content });
-        await post.save();
-        res.status(201).send({ message: 'Post created successfully' });
-    } catch (error) {
-        res.status(400).send({ message: error.message });
-    }
+// 로그아웃
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.status(200).send({ message: 'Logout successful' });
 });
 
-// 특정 게시판의 글 목록 조회
-router.get('/board/:boardName', async (req, res) => {
-    try {
-        const { boardName } = req.params;
-        const posts = await Post.find({ board: boardName }).populate('user_id', 'username').sort({ created_at: -1 });
-        res.json(posts);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
-    }
+// 사용자 수를 반환하는 경로 추가
+router.get('/count', async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.status(200).send({ count: userCount });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 });
 
-// 글 수정
-router.post('/', verifyToken, async (req, res) => {
-    try {
-        const { board, title, content } = req.body;
-
-        // 게시판 존재 여부 확인
-        const existingBoard = await Board.findOne({ name: board });
-        if (!existingBoard) {
-            return res.status(400).send({ message: 'Board does not exist' });
-        }
-
-        const post = new Post({ user_id: req.user._id, board, title, content });
-        await post.save();
-        res.status(201).send({ message: 'Post created successfully' });
-    } catch (error) {
-        res.status(400).send({ message: error.message });
+// 사용자 정보 업데이트
+router.post('/update', async (req, res) => {
+  try {
+    const { customFields } = req.body;
+    const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).send({ message: 'Unauthorized' });
     }
+
+    const decoded = jwt.verify(token, 'your_jwt_secret');
+    await User.findByIdAndUpdate(decoded._id, { customFields });
+    console.log('Profile updated for user:', decoded.username); // 프로필 업데이트 로그
+    res.status(200).send({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Profile update error:', error); // 오류 로그
+    res.status(400).send({ message: error.message });
+  }
 });
 
-// 게시글 검색
-router.get('/search', async (req, res) => {
-    try {
-        const query = req.query.query;
-        const posts = await Post.find({ $text: { $search: query } }).populate('user_id', 'username');
-        res.json(posts);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
-    }
+// 회원 가입 폼
+router.get('/register', (req, res) => {
+  res.render('register');
 });
-// 해시태그 검색
-router.get('/search/hashtag', async (req, res) => {
-    try {
-        const hashtag = req.query.hashtag;
-        const posts = await Post.find({ hashtags: hashtag });
-        res.json(posts);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
-    }
+
+// 로그인 폼
+router.get('/login', (req, res) => {
+  res.render('login');
+});
+
+// 사용자 프로필 편집 폼
+router.get('/edit_profile.html', (req, res) => {
+  res.render('edit_profile');
 });
 
 module.exports = router;
