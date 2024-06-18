@@ -6,15 +6,23 @@ const Board = require('../models/board'); // 게시판 모델 추가
 
 // 글 목록 조회
 router.get('/', async (req, res) => {
-    const posts = await Post.find().populate('user_id', 'username email').sort({ created_at: -1 });
-    res.json(posts);
+    try {
+        const posts = await Post.find().populate('user_id', 'username email').sort({ created_at: -1 });
+        res.json(posts);
+    } catch (error) {
+        res.status(400).send({ message: error.message });
+    }
 });
 
 // 특정 글 조회
 router.get('/:id', async (req, res) => {
-    const post = await Post.findById(req.params.id).populate('user_id', 'username email');
-    if (!post) return res.status(404).send('Post not found');
-    res.json(post);
+    try {
+        const post = await Post.findById(req.params.id).populate('user_id', 'username email');
+        if (!post) return res.status(404).send('Post not found');
+        res.json(post);
+    } catch (error) {
+        res.status(400).send({ message: error.message });
+    }
 });
 
 // 글 작성
@@ -47,16 +55,6 @@ router.get('/board/:boardName', async (req, res) => {
     }
 });
 
-// 모든 게시글 조회
-router.get('/', async (req, res) => {
-    try {
-        const posts = await Post.find().populate('user_id', 'username').sort({ created_at: -1 });
-        res.send(posts);
-    } catch (error) {
-        res.status(400).send({ message: error.message });
-    }
-});
-
 // 글 수정
 router.put('/:id', verifyToken, async (req, res) => {
     const { title, content } = req.body;
@@ -64,13 +62,17 @@ router.put('/:id', verifyToken, async (req, res) => {
         return res.status(400).send('Title and content are required');
     }
 
-    const post = await Post.findOneAndUpdate(
-        { _id: req.params.id, user_id: req.user._id },
-        { title, content, updated_at: Date.now() },
-        { new: true }
-    );
-    if (!post) return res.status(404).send('Post not found or not authorized');
-    res.json(post);
+    try {
+        const post = await Post.findOneAndUpdate(
+            { _id: req.params.id, user_id: req.user._id },
+            { title, content, updated_at: Date.now() },
+            { new: true }
+        );
+        if (!post) return res.status(404).send('Post not found or not authorized');
+        res.json(post);
+    } catch (error) {
+        res.status(400).send({ message: error.message });
+    }
 });
 
 // 게시글 검색
