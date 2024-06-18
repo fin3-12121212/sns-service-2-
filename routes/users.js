@@ -73,6 +73,16 @@ router.post('/logout', (req, res) => {
   res.status(200).send({ message: 'Logout successful' });
 });
 
+// 사용자 수를 반환하는 경로 추가
+router.get('/count', async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.status(200).send({ count: userCount });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 // 사용자 정보 업데이트
 router.post('/update', async (req, res) => {
   try {

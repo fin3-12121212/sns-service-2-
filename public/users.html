@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>메인 페이지</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
 </head>
 <body>
-    <header id="header">
+    <header>
         <div class="nav-container">
-            <a href="#" id="home-link">Home</a>
-            <h1 id="board-title">홈</h1>
-            <div class="user-info" id="user-info">
+            <h1>홈</h1>
+            <div class="user-info">
                 <button id="logout-button" class="logout-button">로그아웃</button>
                 <button id="register-button">회원가입</button>
                 <button id="login-button">로그인</button>
@@ -33,13 +35,13 @@
         </div>
     </aside>
     <main>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="검색어를 입력하세요">
-            <button id="search-button">검색</button>
-        </div>
         <div class="board-container">
+            <h2 id="board-title">게시판 선택</h2>
             <div class="posts-container" id="posts-container">
-                <ul class="posts-list" id="posts-list"></ul>
+                <!-- 게시글 리스트 -->
+                <ul class="posts-list" id="posts-list">
+                    <!-- 게시글이 선택된 게시판에 따라 동적으로 로딩됩니다 -->
+                </ul>
             </div>
             <div class="comment-form-container">
                 <h2>댓글 달기</h2>
@@ -50,6 +52,12 @@
                 </form>
             </div>
         </div>
+        <aside class="sidebar-right">
+            <div class="user-count">
+                <h2>사용자 수</h2>
+                <p id="user-count">0</p>
+            </div>
+        </aside>
     </main>
     <script>
         document.getElementById('register-button').addEventListener('click', () => {
@@ -61,7 +69,7 @@
         });
 
         document.getElementById('logout-button').addEventListener('click', async () => {
-            const response = await fetch('/logout', {
+            const response = await fetch('/users/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,32 +78,12 @@
 
             if (response.ok) {
                 localStorage.removeItem('token');
-                window.location.href = '/login.html';
+                window.location.href = '/login.html'; // 로그아웃 후 로그인 페이지로 이동
+                location.reload(); // 페이지 새로고침
             } else {
                 const result = await response.json();
                 alert('로그아웃 실패: ' + result.message);
             }
-        });
-
-        document.getElementById('search-button').addEventListener('click', async () => {
-            const query = document.getElementById('search-input').value;
-            if (!query) return alert('검색어를 입력하세요.');
-
-            const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
-            const posts = await response.json();
-            const searchResults = document.getElementById('search-results');
-            searchResults.innerHTML = '';
-
-            posts.forEach(post => {
-                const postItem = document.createElement('li');
-                postItem.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <p>작성자: ${post.author}</p>
-                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-                `;
-                postsList.appendChild(postItem);
-            });
         });
 
         document.getElementById('comment-form').addEventListener('submit', async (event) => {
@@ -132,7 +120,7 @@
         });
 
         async function loadPosts(boardTitle) {
-            const response = await fetch(`/posts/board/${boardTitle}`);
+            const response = await fetch(`/posts?board=${boardTitle}`);
             const posts = await response.json();
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
@@ -152,17 +140,17 @@
         async function loadUserCount() {
             const response = await fetch('/users/count');
             const count = await response.json();
-            document.getElementById('user-count').innerText = count;
+            document.getElementById('user-count').innerText = count.count;
         }
 
         function checkLogin() {
             const token = localStorage.getItem('token');
             if (token) {
-                const user = jwt_decode(token);
+                // 토큰이 있는 경우 로그인 상태로 처리
+                const user = jwt_decode(token); // jwt-decode 라이브러리 사용
                 document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
             } else {
                 document.getElementById('login-container').style.display = 'none';
-                document.getElementById('comment-form-container').style.display = 'none';
             }
         }
 
