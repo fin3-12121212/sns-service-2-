@@ -16,9 +16,7 @@ const youtubeRouter = require('./routes/youtube'); // youtube 라우트 추가
 var app = express();
 
 // MongoDB 연결 설정
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect('mongodb+srv://bob:makeit123@fine.mngnqv4.mongodb.net/post?retryWrites=true&w=majority', {
   connectTimeoutMS: 30000, // 30초로 타임아웃 설정
   socketTimeoutMS: 45000, // 45초로 소켓 타임아웃 설정
 })

@@ -102,4 +102,9 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
+// 
+router.get('/edit_profile.html', (req, res) => {
+  res.render('edit_profile');
+});
+
 module.exports = router;

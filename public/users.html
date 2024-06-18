@@ -25,9 +25,10 @@
         <div class="board-list">
             <h2>게시판</h2>
             <ul>
-                <li><a href="#" data-board="게시판 1">게시판 1</a></li>
-                <li><a href="#" data-board="게시판 2">게시판 2</a></li>
-                <li><a href="#" data-board="게시판 3">게시판 3</a></li>
+                <li><a href="#" data-board="Board 1">게시판 1</a></li>
+                <li><a href="#" data-board="Board 2">게시판 2</a></li>
+                <li><a href="#" data-board="Board 3">게시판 3</a></li>
+                <!-- 추가적인 게시판을 여기서 추가할 수 있습니다 -->
             </ul>
         </div>
     </aside>
@@ -40,42 +41,17 @@
             <div class="posts-container" id="posts-container">
                 <ul class="posts-list" id="posts-list"></ul>
             </div>
-            <div class="comment-form-container" id="comment-form-container" style="display: none;">
-                <h2>글 작성</h2>
-                <form id="post-form">
-                    <label for="post-title">제목:</label>
-                    <input type="text" id="post-title" name="post-title" required><br>
-                    <label for="post-content">내용:</label>
-                    <textarea id="post-content" name="post-content" required></textarea><br>
-                    <label for="post-hashtags">해시태그 (쉼표로 구분):</label>
-                    <input type="text" id="post-hashtags" name="post-hashtags"><br>
-                    <button type="submit">글 작성</button>
+            <div class="comment-form-container">
+                <h2>댓글 달기</h2>
+                <form id="comment-form">
+                    <label for="comment-content">내용:</label>
+                    <textarea id="comment-content" name="comment-content" required></textarea><br>
+                    <button type="submit">댓글 작성</button>
                 </form>
             </div>
         </div>
     </main>
     <script>
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const header = document.getElementById('header');
-            const randomColor = getRandomColor();
-            header.style.backgroundColor = randomColor;
-
-            loadAllPosts();
-        });
-
-        document.getElementById('home-link').addEventListener('click', () => {
-            window.location.href = '/';
-        });
-
         document.getElementById('register-button').addEventListener('click', () => {
             window.location.href = '/register.html';
         });
@@ -110,20 +86,39 @@
             const searchResults = document.getElementById('search-results');
             searchResults.innerHTML = '';
 
-            if (posts.length === 0) {
-                searchResults.innerHTML = '<p>검색 결과가 없습니다.</p>';
+            posts.forEach(post => {
+                const postItem = document.createElement('li');
+                postItem.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <p>작성자: ${post.author}</p>
+                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
+                `;
+                postsList.appendChild(postItem);
+            });
+        });
+
+        document.getElementById('comment-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const content = document.getElementById('comment-content').value;
+            const boardTitle = document.getElementById('board-title').innerText;
+            if (boardTitle === '게시판 선택') {
+                alert('먼저 게시판을 선택하세요.');
+                return;
+            }
+            const response = await fetch('/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content, board: boardTitle }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert('댓글이 작성되었습니다.');
+                loadPosts(boardTitle);
             } else {
-                posts.forEach(post => {
-                    const postItem = document.createElement('div');
-                    postItem.innerHTML = `
-                        <h3>${post.title}</h3>
-                        <p>${post.content}</p>
-                        <p>게시판: ${post.board}</p>
-                        <p>작성자: ${post.user_id.username}</p>
-                        <p>작성일: ${new Date(post.created_at).toLocaleString()}</p>
-                    `;
-                    searchResults.appendChild(postItem);
-                });
+                alert('댓글 작성 실패: ' + result.message);
             }
         });
 
@@ -133,38 +128,7 @@
                 const boardTitle = event.target.getAttribute('data-board');
                 document.getElementById('board-title').innerText = boardTitle;
                 loadPosts(boardTitle);
-
-                const header = document.getElementById('header');
-                const randomColor = getRandomColor();
-                header.style.backgroundColor = randomColor;
             });
-        });
-
-        document.getElementById('post-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const title = document.getElementById('post-title').value;
-            const content = document.getElementById('post-content').value;
-            const hashtags = document.getElementById('post-hashtags').value.split(',').map(tag => tag.trim());
-            const boardTitle = document.getElementById('board-title').innerText;
-            if (boardTitle === '게시판 선택') {
-                alert('먼저 게시판을 선택하세요.');
-                return;
-            }
-            const response = await fetch('/posts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ title, content, board: boardTitle, hashtags }),
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert('글이 작성되었습니다.');
-                loadPosts(boardTitle);
-            } else {
-                alert('글 작성 실패: ' + result.message);
-            }
         });
 
         async function loadPosts(boardTitle) {
@@ -178,31 +142,17 @@
                 postItem.innerHTML = `
                     <h3>${post.title}</h3>
                     <p>${post.content}</p>
-                    <p>게시판: ${post.board}</p>
-                    <p>작성자: ${post.user_id.username}</p>
-                    <p>작성일: ${new Date(post.created_at).toLocaleString()}</p>
+                    <p>작성자: ${post.author}</p>
+                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
                 `;
                 postsList.appendChild(postItem);
             });
         }
 
-        async function loadAllPosts() {
-            const response = await fetch(`/posts`);
-            const posts = await response.json();
-            const postsList = document.getElementById('posts-list');
-            postsList.innerHTML = '';
-
-            posts.forEach(post => {
-                const postItem = document.createElement('li');
-                postItem.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <p>게시판: ${post.board}</p>
-                    <p>작성자: ${post.user_id.username}</p>
-                    <p>작성일: ${new Date(post.created_at).toLocaleString()}</p>
-                `;
-                postsList.appendChild(postItem);
-            });
+        async function loadUserCount() {
+            const response = await fetch('/users/count');
+            const count = await response.json();
+            document.getElementById('user-count').innerText = count;
         }
 
         function checkLogin() {
@@ -210,20 +160,15 @@
             if (token) {
                 const user = jwt_decode(token);
                 document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
-                document.getElementById('comment-form-container').style.display = 'block';
-                document.getElementById('register-button').style.display = 'none';
-                document.getElementById('login-button').style.display = 'none';
-
-                const userInfo = document.getElementById('user-info');
-                const userInfoText = document.createElement('span');
-                userInfoText.innerText = `(${user.username}), (${user.name})`;
-                userInfo.insertBefore(userInfoText, document.getElementById('logout-button'));
             } else {
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('comment-form-container').style.display = 'none';
             }
         }
 
+        // 페이지 로드 시 사용자 수 불러오기
+        loadUserCount();
+        // 로그인 상태 확인
         checkLogin();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
