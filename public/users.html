@@ -57,10 +57,7 @@
         </div>
     </main>
     <script>
-<<<<<<< HEAD
         // 랜덤 색상 생성 함수
-=======
->>>>>>> 6c28cd6f798c09075310a978714919f4d3362d5c
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
             let color = '#';
@@ -70,10 +67,7 @@
             return color;
         }
 
-<<<<<<< HEAD
         // 페이지 로드 시 랜덤 색상 설정
-=======
->>>>>>> 6c28cd6f798c09075310a978714919f4d3362d5c
         document.addEventListener('DOMContentLoaded', () => {
             const header = document.getElementById('header');
             const randomColor = getRandomColor();
@@ -82,10 +76,7 @@
             loadAllPosts(); // 모든 게시글 불러오기
         });
 
-<<<<<<< HEAD
         // 이벤트 리스너 설정
-=======
->>>>>>> 6c28cd6f798c09075310a978714919f4d3362d5c
         document.getElementById('home-link').addEventListener('click', () => {
             window.location.href = '/';
         });
@@ -121,13 +112,10 @@
 
             const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
             const posts = await response.json();
-            const searchResults = document.getElementById('search-results');
-            searchResults.innerHTML = '';
+            const postsList = document.getElementById('posts-list');
+            postsList.innerHTML = '';
 
             if (posts.length === 0) {
-<<<<<<< HEAD
-                searchResults.innerHTML = '<p>검색 결과가 없습니다.</p>';
-=======
                 postsList.innerHTML = '<li>검색 결과가 없습니다.</li>';
             } else {
                 posts.forEach(post => {
@@ -140,41 +128,6 @@
                         <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
                     `;
                     postsList.appendChild(postItem);
-                });
-            }
-        });
-
-        document.getElementById('comment-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const content = document.getElementById('comment-content').value;
-            const boardTitle = document.getElementById('board-title').innerText;
-            if (boardTitle === '게시판 선택') {
-                alert('먼저 게시판을 선택하세요.');
-                return;
-            }
-            const response = await fetch('/comments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content, board: boardTitle }),
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert('댓글이 작성되었습니다.');
-                loadPosts(boardTitle);
->>>>>>> 6c28cd6f798c09075310a978714919f4d3362d5c
-            } else {
-                posts.forEach(post => {
-                    const postItem = document.createElement('div');
-                    postItem.innerHTML = `
-                        <h3>${post.title}</h3>
-                        <p>${post.content}</p>
-                        <p>게시판: ${post.board}</p>
-                        <p>작성자: ${post.author}</p>
-                        <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-                    `;
-                    searchResults.appendChild(postItem);
                 });
             }
         });
