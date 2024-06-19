@@ -35,6 +35,14 @@
         </div>
     </aside>
     <main>
+<<<<<<< HEAD
+=======
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="검색어를 입력하세요">
+            <button id="search-button">검색</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+>>>>>>> ecace73b0d545e3655aa63552089f8710809309f
         <div class="board-container">
             <div class="posts-container" id="posts-container">
                 <!-- 게시글 리스트 -->
@@ -54,6 +62,7 @@
             </div>
         </div>
     </main>
+<<<<<<< HEAD
     <script>
         document.getElementById('register-button').addEventListener('click', () => {
             window.location.href = '/register.html';
@@ -175,5 +184,27 @@
         checkLogin();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
+=======
+    <div id="post-form" style="display:none;">
+        <form id="post-form-inner" onsubmit="submitPostForm(event)">
+            <h2>글 작성하기</h2>
+            <label for="board">게시판 선택:</label>
+            <select id="board" name="board">
+                <option value="게시판 1">게시판 1</option>
+                <option value="게시판 2">게시판 2</option>
+                <option value="게시판 3">게시판 3</option>
+            </select>
+            <label for="title">제목:</label>
+            <input type="text" id="title" name="title" required>
+            <label for="content">내용:</label>
+            <textarea id="content" name="content" required></textarea>
+            <label for="image">이미지:</label>
+            <input type="file" id="image" name="image"><br>
+            <button type="submit">작성</button>
+            <button type="button" onclick="hidePostForm()">취소</button>
+        </form>
+    </div>
+    <button onclick="showPostForm()">글 작성하기</button>
+>>>>>>> ecace73b0d545e3655aa63552089f8710809309f
 </body>
 </html>

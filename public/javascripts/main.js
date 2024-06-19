@@ -13,28 +13,36 @@ document.addEventListener("DOMContentLoaded", function() {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
 
-        console.log("Submitting post form with data:", data);
+        console.log("Submitting post form with data:", formData);
 
         try {
             const response = await fetch('/posts', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (response.ok) {
                 alert('게시글이 작성되었습니다.');
                 hidePostForm();
-                loadPosts(data.board);
+                loadPosts(formData.get('board'));
             } else {
-                const error = await response.json();
+                const error = await response.text();
                 console.error("Error submitting post:", error);
-                alert(`오류: ${error.message}`);
+                try {
+                    const jsonError = JSON.parse(error);
+                    if (jsonError.message === 'Token expired') {
+                        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                        window.location.href = '/login.html';
+                    } else {
+                        alert(`오류: ${jsonError.message}`);
+                    }
+                } catch (e) {
+                    alert(`오류: ${error}`);
+                }
             }
         } catch (error) {
             console.error("Error submitting post:", error);
@@ -62,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 postItem.innerHTML = `
                     <h3>${post.title}</h3>
                     <p>${post.content}</p>
+                    ${post.image ? `<img src="/${post.image}" alt="Post image">` : ''}
                     <small>게시판: ${post.board}, 작성자: ${post.user?.username ?? 'Unknown'}, 작성일: ${new Date(post.createdAt).toLocaleDateString()}</small>
                 `;
                 postsList.appendChild(postItem);
@@ -91,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 postItem.innerHTML = `
                     <h3>${post.title}</h3>
                     <p>${post.content}</p>
+                    ${post.image ? `<img src="/${post.image}" alt="Post image">` : ''}
                     <small>게시판: ${post.board}, 작성자: ${post.user?.username ?? 'Unknown'}, 작성일: ${new Date(post.createdAt).toLocaleDateString()}</small>
                 `;
                 postsList.appendChild(postItem);
@@ -111,11 +121,11 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('login-button').style.display = 'none';
             document.getElementById('logout-button').style.display = 'block';
 
-            // 로그인한 사용자의 ID와 이름 표시
-            const userInfo = document.getElementById('user-info');
-            const userInfoText = document.createElement('span');
-            userInfoText.innerText = `(${user.username}), (${user.name})`;
-            userInfo.insertBefore(userInfoText, document.getElementById('logout-button'));
+            // 로그인한 사용자의 ID와 이름 표시 대신 로그아웃 버튼만 보이도록 변경
+            const userInfoText = document.getElementById('user-info-text');
+            if (userInfoText) {
+                userInfoText.remove();
+            }
         } else {
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('comment-form-container').style.display = 'none';
@@ -183,25 +193,36 @@ document.addEventListener("DOMContentLoaded", function() {
         const query = document.getElementById('search-input').value;
         if (!query) return alert('검색어를 입력하세요.');
 
-        const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
-        const posts = await response.json();
-        const searchResults = document.getElementById('search-results');
-        searchResults.innerHTML = '';
+        try {
+            console.log('Sending search request for query:', query); // 로그 추가
+            const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
+            console.log('Search response status:', response.status); // 응답 상태 로그
 
-        if (posts.length === 0) {
-            searchResults.innerHTML = '<p>검색 결과가 없습니다.</p>';
-        } else {
-            posts.forEach(post => {
-                const postItem = document.createElement('div');
-                postItem.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <p>게시판: ${post.board}</p>
-                    <p>작성자: ${post.author}</p>
-                    <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-                `;
-                searchResults.appendChild(postItem);
-            });
+            if (!response.ok) {
+                throw new Error('Failed to search posts');
+            }
+            const posts = await response.json();
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = '';
+
+            if (posts.length === 0) {
+                searchResults.innerHTML = '<p>검색 결과가 없습니다.</p>';
+            } else {
+                posts.forEach(post => {
+                    const postItem = document.createElement('div');
+                    postItem.innerHTML = `
+                        <h3>${post.title}</h3>
+                        <p>${post.content}</p>
+                        <p>게시판: ${post.board}</p>
+                        <p>작성자: ${post.user?.username ?? 'Unknown'}</p>
+                        <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
+                    `;
+                    searchResults.appendChild(postItem);
+                });
+            }
+        } catch (error) {
+            console.error('Error searching posts:', error);
+            alert('게시글 검색 중 오류가 발생했습니다.');
         }
     });
 

@@ -6,6 +6,7 @@ const postSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   hashtags: [String], // 해시태그 
+  image: { type: String }, // 이미지 경로 필드 추가
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });
