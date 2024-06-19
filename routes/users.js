@@ -40,32 +40,33 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Logging in user:', username); // 입력된 사용자명 로그
+    console.log('Logging in user:', username);
     
     const user = await User.findOne({ username });
     if (!user) {
-      console.log('Invalid username:', username); // 유효하지 않은 사용자명 로그
+      console.log('Invalid username:', username);
       return res.status(400).send({ message: 'Invalid username or password' });
     }
 
-    console.log('Stored hashed password:', user.password); // 저장된 해시화된 비밀번호 로그
-    console.log('Entered password:', password); // 입력된 비밀번호 로그
+    console.log('Stored hashed password:', user.password);
+    console.log('Entered password:', password);
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match:', isMatch); // 비밀번호 일치 여부 로그
+    console.log('Password match:', isMatch);
     if (!isMatch) {
-      console.log('Invalid password for user:', username); // 유효하지 않은 비밀번호 로그
+      console.log('Invalid password for user:', username);
       return res.status(400).send({ message: 'Invalid username or password' });
     }
 
     const token = jwt.sign({ _id: user._id, username: user.username, name: user.name }, 'your_jwt_secret', { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
-    console.log('Login successful, token:', token); // 성공적인 로그인과 토큰 로그
+    console.log('Login successful, token:', token);
     res.send({ message: 'Login successful', token });
   } catch (error) {
-    console.error('Login error:', error); // 오류 로그
+    console.error('Login error:', error);
     res.status(400).send({ message: error.message });
   }
 });
+
 
 // 로그아웃
 router.post('/logout', (req, res) => {

@@ -47,9 +47,9 @@ app.use('/users', usersRouter);
 app.use('/posts', postsRouter);
 app.use('/boards', boardsRouter);
 
-// 루트 경로로 요청이 들어오면 /main.html로 리다이렉트
+// 루트 경로로 요청이 들어오면 /users.html로 리다이렉트
 app.get('/', (req, res) => {
-  res.redirect('/main.html');
+  res.redirect('/users.html');
 });
 
 // catch 404 and forward to error handler
