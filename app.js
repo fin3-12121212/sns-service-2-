@@ -1,4 +1,3 @@
-
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -14,6 +13,7 @@ const usersRouter = require('./routes/users');
 const postsRouter = require('./routes/posts');
 const boardsRouter = require('./routes/boards');
 
+// Express 앱 생성
 const app = express();
 
 // 업로드 폴더가 존재하는지 확인하고, 없으면 생성
@@ -33,6 +33,7 @@ mongoose.connect('mongodb+srv://bob:makeit123@fine.mngnqv4.mongodb.net/post?retr
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// 미들웨어 설정
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -40,6 +41,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadDir)); // 업로드된 파일 제공을 위한 정적 파일 서비스 설정
 
+// JWT 인증 미들웨어
 app.use(async (req, res, next) => {
   const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
   if (token) {
@@ -59,6 +61,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// 라우터 설정
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/posts', postsRouter);

@@ -39,21 +39,33 @@ router.post('/register', async (req, res) => {
 // 로그인
 router.post('/login', async (req, res) => {
   try {
-    const { name, password } = req.body; // 로그인 시 사용자 ID로 로그인
-    const user = await User.findOne({ name });
-    if (!user) return res.status(400).send({ message: 'Invalid ID or password' });
+    const { username, password } = req.body;
+    console.log('Logging in user:', username); // 입력된 사용자명 로그
+    
+    const user = await User.findOne({ username });
+    if (!user) {
+      console.log('Invalid username:', username); // 유효하지 않은 사용자명 로그
+      return res.status(400).send({ message: 'Invalid username or password' });
+    }
 
+    console.log('Stored hashed password:', user.password); // 저장된 해시화된 비밀번호 로그
+    console.log('Entered password:', password); // 입력된 비밀번호 로그
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).send({ message: 'Invalid ID or password' });
+    console.log('Password match:', isMatch); // 비밀번호 일치 여부 로그
+    if (!isMatch) {
+      console.log('Invalid password for user:', username); // 유효하지 않은 비밀번호 로그
+      return res.status(400).send({ message: 'Invalid username or password' });
+    }
 
-    const token = jwt.sign({ _id: user._id, name: user.name, username: user.username }, 'your_jwt_secret', { expiresIn: '1h' });
+    const token = jwt.sign({ _id: user._id, username: user.username, name: user.name }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
+    console.log('Login successful, token:', token); // 성공적인 로그인과 토큰 로그
     res.send({ message: 'Login successful', token });
   } catch (error) {
+    console.error('Login error:', error); // 오류 로그
     res.status(400).send({ message: error.message });
   }
 });
-
 
 // 로그아웃
 router.post('/logout', (req, res) => {
@@ -88,6 +100,16 @@ router.get('/register', (req, res) => {
 // 로그인 폼
 router.get('/login', (req, res) => {
   res.render('login');
+});
+
+// 사용자 수를 반환하는 경로 추가
+router.get('/count', async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.status(200).send({ count: userCount });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 });
 
 // 
