@@ -39,30 +39,17 @@ router.post('/register', async (req, res) => {
 // 로그인
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    console.log('Logging in user:', username);
-    
-    const user = await User.findOne({ username });
-    if (!user) {
-      console.log('Invalid username:', username);
-      return res.status(400).send({ message: 'Invalid username or password' });
-    }
+    const { name, password } = req.body; // 로그인 시 사용자 ID로 로그인
+    const user = await User.findOne({ name });
+    if (!user) return res.status(400).send({ message: 'Invalid ID or password' });
 
-    console.log('Stored hashed password:', user.password);
-    console.log('Entered password:', password);
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match:', isMatch);
-    if (!isMatch) {
-      console.log('Invalid password for user:', username);
-      return res.status(400).send({ message: 'Invalid username or password' });
-    }
+    if (!isMatch) return res.status(400).send({ message: 'Invalid ID or password' });
 
-    const token = jwt.sign({ _id: user._id, username: user.username, name: user.name }, 'your_jwt_secret', { expiresIn: '1h' });
+    const token = jwt.sign({ _id: user._id, name: user.name, username: user.username }, 'your_jwt_secret', { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
-    console.log('Login successful, token:', token);
     res.send({ message: 'Login successful', token });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(400).send({ message: error.message });
   }
 });
@@ -74,16 +61,6 @@ router.post('/logout', (req, res) => {
   res.status(200).send({ message: 'Logout successful' });
 });
 
-// 사용자 수를 반환하는 경로 추가
-router.get('/count', async (req, res) => {
-  try {
-    const userCount = await User.countDocuments();
-    res.status(200).send({ count: userCount });
-  } catch (error) {
-    res.status(500).send({ message: error.message });
-  }
-});
-
 // 사용자 정보 업데이트
 router.post('/update', async (req, res) => {
   try {
@@ -93,7 +70,7 @@ router.post('/update', async (req, res) => {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     await User.findByIdAndUpdate(decoded._id, { customFields });
     console.log('Profile updated for user:', decoded.username); // 프로필 업데이트 로그
     res.status(200).send({ message: 'Profile updated successfully' });

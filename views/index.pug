@@ -1,170 +1,74 @@
 doctype html
-html(lang="ko")
+html(lang="en")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title 홈
+    title Home
     link(rel="stylesheet", href="/stylesheets/style.css")
   body
-    header
-      .nav-container
-        h1 홈
-        .user-info
-          button#logout-button.logout-button 로그아웃
-          button#register-button 회원가입
-          button#login-button 로그인
-    aside.sidebar
-      .login-container#login-container
-        h2#welcome-message
-      .board-list
-        h2 게시판
-        ul
-          li
-            a(href="#", data-board="게시판 1") 게시판 1
-          li
-            a(href="#", data-board="게시판 2") 게시판 2
-          li
-            a(href="#", data-board="게시판 3") 게시판 3
-    main
-      .search-container
-        input(type="text", id="search-input", placeholder="검색어를 입력하세요")
-        button#search-button 검색
-      .board-container
-        h2#board-title 게시판 선택
-        .posts-container#posts-container
-          ul.posts-list#posts-list
-      .comment-form-container
-        h2 댓글 달기
-        form#comment-form
-          label(for="comment-content") 내용:
-          textarea#comment-content(name="comment-content", required="")
-          br
-          button(type="submit") 댓글 작성
-    aside.sidebar-right
-      .user-count
-        h2 사용자 수
-        p#user-count 0
+    h2 Home
+    if user
+      p Welcome, #{user.username}
+      button(id="logout-button") Logout
+      h3 Write a new post
+      form(id="post-form", onsubmit="return false;")
+        label(for="title") Title:
+        input(type="text", id="title", name="title", required=true)
+        br
+        label(for="content") Content:
+        textarea(id="content", name="content", required=true)
+        br
+        button(type="submit") Post
+    else
+      button(id="register-button") Register
+      button(id="login-button") Login
+    h3 Posts
+    ul
+      each post in posts
+        li
+          h4 #{post.title}
+          p #{post.content}
+          p Written by: #{post.user_id ? post.user_id.username : 'Unknown'}
+          p Posted at: #{new Date(post.created_at).toLocaleString()}
     script.
-      document.getElementById('register-button').addEventListener('click', () => {
-        window.location.href = '/register.html';
+      document.getElementById('register-button')?.addEventListener('click', () => {
+        window.location.href = '/users/register';
       });
 
-      document.getElementById('login-button').addEventListener('click', () => {
-        window.location.href = '/login.html';
+      document.getElementById('login-button')?.addEventListener('click', () => {
+        window.location.href = '/users/login';
       });
 
-      document.getElementById('logout-button').addEventListener('click', async () => {
-        const response = await fetch('/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (response.ok) {
-          localStorage.removeItem('token');
-          window.location.href = '/login.html';
-        } else {
-          const result = await response.json();
-          alert('로그아웃 실패: ' + result.message);
-        }
+      document.getElementById('logout-button').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = '/';
       });
 
-      document.getElementById('search-button').addEventListener('click', async () => {
-        const query = document.getElementById('search-input').value;
-        if (!query) return alert('검색어를 입력하세요.');
-
-        const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
-        const posts = await response.json();
-        const postsList = document.getElementById('posts-list');
-        postsList.innerHTML = '';
-
-        if (posts.length > 0) {
-          posts.forEach(post => {
-            const postItem = document.createElement('li');
-            postItem.innerHTML = `
-              <h3>${post.title}</h3>
-              <p>${post.content}</p>
-              <p>작성자: ${post.author}</p>
-              <p>작성일: ${new Date(post.createdAt).toLocaleString()}</p>
-            `;
-            postsList.appendChild(postItem);
-          });
-        } else {
-          postsList.innerHTML = '<p>검색 결과가 없습니다.</p>';
-        }
-      });
-
-      document.getElementById('comment-form').addEventListener('submit', async (event) => {
+      document.getElementById('post-form').addEventListener('submit', async (event) => {
         event.preventDefault();
-        const content = document.getElementById('comment-content').value;
-        const boardTitle = document.getElementById('board-title').innerText;
-        if (boardTitle === '게시판 선택') {
-          alert('먼저 게시판을 선택하세요.');
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You need to log in to post');
           return;
         }
-        const response = await fetch('/comments', {
+
+        const response = await fetch('/posts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ content, board: boardTitle }),
+          body: JSON.stringify({ title, content }),
         });
         const result = await response.json();
         if (response.ok) {
-          alert('댓글이 작성되었습니다.');
-          loadPosts(boardTitle);
+          window.location.reload();
         } else {
-          alert('댓글 작성 실패: ' + result.message);
+          const error = await response.text();
+          alert(`Failed to post: ${error}`);
         }
       });
-
-      document.querySelectorAll('.board-list a').forEach(link => {
-        link.addEventListener('click', (event) => {
-          event.preventDefault();
-          const boardTitle = event.target.getAttribute('data-board');
-          document.getElementById('board-title').innerText = boardTitle;
-          loadPosts(boardTitle);
-        });
-      });
-
-      async function loadPosts(boardTitle) {
-        const response = await fetch(`/posts?board=${boardTitle}`);
-        const posts = await response.json();
-        const postsList = document.getElementById('posts-list');
-        postsList.innerHTML = '';
-
-        posts.forEach(post => {
-          const postItem = document.createElement('li');
-          postItem.innerHTML = `
-            <h3>${post.title}</h3>
-            <p>${post.content}</p>
-            <p>작성자: ${post.author}</p>
-            <p>작성일: ${new Date(post.created_at).toLocaleString()}</p>
-          `;
-          postsList.appendChild(postItem);
-        });
-      }
-
-      async function loadUserCount() {
-        const response = await fetch('/users/count');
-        const count = await response.json();
-        document.getElementById('user-count').innerText = count.count;
-      }
-
-      function checkLogin() {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const user = jwt_decode(token); // jwt-decode 라이브러리 사용
-          document.getElementById('welcome-message').innerText = `Welcome, ${user.username}`;
-        } else {
-          document.getElementById('login-container').style.display = 'none';
-        }
-      }
-
-      loadUserCount();
-      checkLogin();
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/2.2.0/jwt-decode.min.js"></script>
-</body>
-</html>

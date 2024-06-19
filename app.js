@@ -1,10 +1,12 @@
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+var mongoose = require('mongoose');
+var jwt = require('jsonwebtoken');
+require('dotenv').config(); // dotenv 로드
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
