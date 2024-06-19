@@ -1,6 +1,7 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
+var fs = require('fs'); // 파일 시스템 모듈 추가
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
@@ -13,6 +14,13 @@ const postsRouter = require('./routes/posts'); // posts 라우트 추가
 const boardsRouter = require('./routes/boards'); // boards 라우트 추가
 
 var app = express();
+
+// 업로드 폴더가 존재하는지 확인하고, 없으면 생성
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log(`Created directory: ${uploadDir}`);
+}
 
 // MongoDB 연결 설정
 mongoose.connect('mongodb+srv://bob:makeit123@fine.mngnqv4.mongodb.net/post?retryWrites=true&w=majority', {
@@ -31,6 +39,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(uploadDir)); // 업로드된 파일 제공을 위한 정적 파일 서비스 설정
 
 app.use(async (req, res, next) => {
   const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
@@ -39,7 +48,13 @@ app.use(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
     } catch (err) {
-      console.error(err);
+      if (err.name === 'TokenExpiredError') {
+        console.error('Token expired:', err);
+        return res.status(401).json({ message: 'Token expired' });
+      } else {
+        console.error('Token verification failed:', err);
+        return res.status(401).json({ message: 'Invalid token' });
+      }
     }
   }
   next();
